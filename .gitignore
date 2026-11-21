@@ -1,0 +1,41 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Python / Node
+__pycache__/
+*.py[cod]
+.venv/
+node_modules/
+dist/
+build/
+.coverage
+.pytest_cache/
+
+# Browser/session artifacts
+playwright-report/
+test-results/
+playwright/.auth/
+*.trace.zip
+*.har
+*.webm
+artifacts/
+traces/
+screenshots/
+
+# Local data/storage
+volumes/
+data/
+*.sqlite
+*.db
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
