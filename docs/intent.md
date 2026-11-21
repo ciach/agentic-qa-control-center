@@ -173,3 +173,32 @@ These are **not blockers to writing the specification or beginning an initial sc
 - OpenAI API data controls: https://developers.openai.com/api/docs/guides/your-data
 
 **Decision:** proceed with local-first architecture and the user-approved public repository ciach/agentic-qa-control-center; do not require application source code for the first milestone.
+
+## 13. TestSprite-inspired product refinement (approved direction for planning)
+
+**Benchmark:** [TestSprite 4.0 comparison and adoption decisions](./testsprite-benchmark.md), researched 2026-11-21. TestSprite's November 20 launch demonstrates a requirements-first autonomous QA loop. This is a product reference, not a deployment dependency, code reuse or proof of equivalent functionality.
+
+### G10 — Verify intended behavior, not merely observed behavior
+
+In addition to the original **Application State Map** (what the browser observed), create an **Intent/Feature Map** (what the application *should* do). The latter derives from an operator brief, optional PRD/ticket/design and reviewed assumptions. It contains editable features, roles, acceptance criteria and versioned expected results. Keep both representations linked, but separate.
+
+The system must visibly distinguish:
+- Approved requirement with verified execution.
+- Approved requirement not yet reached or tested.
+- Observed feature with no documented requirement.
+- Observed behavior contradicting an approved requirement.
+- Unresolved business-rule assumption requiring human input.
+
+Exploration may continue with incomplete intent, but an inferred expectation is not automatically a release oracle. Requirements, test-plan expectations and baseline changes need explicit review/versioning.
+
+### G11 — Trustworthy failure triage and bounded repair
+
+Every failure gets a readable **expected vs actual** evidence bundle and a classification: suspected/confirmed product defect, fragile test, environment fault or unknown. The agent may suggest a probable cause, but confidence must not substitute for evidence.
+
+A later self-healing workflow may propose changes to selectors, waits and navigation mechanics. It **must not silently rewrite approved assertions, product intent, visual baselines or permission policies**. Rerun the original oracle and require human promotion of repaired test code.
+
+### G12 — Brief-to-report UX and retained coverage
+
+The ideal user journey is: create a plain-language project brief → review a proposed feature/intent map and questions → launch bounded exploration → inspect live state map and proposed test plan → review Playwright tests and executions → inspect classified failures and replay → receive a concise gate report linked to deep evidence. Persist reviewed tests and requirements across runs for regression, not throwaway one-time checks.
+
+**Priorities:** M0/M1 keep their infrastructure and trusted worker scope; minimal intent editor and traceability start M2/M3; failure packages and intent-grounded test generation land M4/M5. Self-healing, CI, CLI/MCP, API chains and parallel agents are post-MVP candidates. Local Docker and OpenAI API remain unchanged.
