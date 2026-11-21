@@ -330,3 +330,45 @@ Note: create these directories only as needed; avoid premature boilerplate and s
 - W3C WCAG 2.2: https://www.w3.org/TR/WCAG22/
 - React Flow: https://reactflow.dev/
 - OpenAI API data controls: https://developers.openai.com/api/docs/guides/your-data
+
+## 14. TestSprite-informed implementation amendments (2026-11-21)
+
+See [TestSprite benchmark](./testsprite-benchmark.md). Its 4.0 release (2026-11-20) makes a crucial distinction visible: editable **product intent/expected outcomes** must be the source of test truth, while browser exploration is the evidence source. We will implement both rather than attempting to infer correctness from the current UI.
+
+### New vertical slices and milestone amendments
+
+| Milestone | Concrete amendment | Exit check |
+|---|---|---|
+| **M0** | Record an ADR for the two-map model, requirement/oracle immutability and approval of changes; add synthetic feature brief with intentionally ambiguous rule | Fixture distinguishes approved rule from inferred assumption |
+| **M1** | Accept a plain-language run goal in authenticated dashboard; store goal revision, model input/redaction provenance and run correlation | The brief survives restart and never carries raw secrets to OpenAI |
+| **M2** | Add Intent Map schema and many-to-many Requirement ↔ Journey ↔ State/Transition links; allow lightweight read view with table parity | Display observed-but-unspecified and specified-but-unobserved separately |
+| **M3** | Build minimal editable requirement/feature map and assumption register; agent proposes but does not approve requirements or required test-plan expectations | User can approve/reject/revise an assumption with audit trail; no inferred oracle silently passes |
+| **M4** | Extend report/finding UI with failure bundles, triage statuses, expected vs actual, step replay, test-plan/requirements coverage and semantic UX issues (toasts, misleading empty states, label inconsistency, destructive confirmations) | Report clearly separates app defect/test failure/environment failure/unknown; screenshots and trace links work |
+| **M5** | Generate Playwright draft assertions only from approved requirements/test oracles; propose a requirement-linked test plan and await review before suite promotion | Deliberate implementation bug is not encoded as a passing assertion; source requirement is visible next to test |
+| **M6+** | Optional mechanics-only selector/wait auto-repair with diff/rerun/approval, local CLI/MCP, GitHub PR status checks, multi-request API flows, schedules and parallel workers | Repair cannot change expected values or baselines; all integrations are optional/off by default |
+
+### Additional backlog (relative to E01–E16)
+
+| Epic | Scope | Priority |
+|---|---|---|
+| **E17 — Product brief and intent map** | Natural-language goals, requirements, source provenance, feature dependencies, approvals/versioning and uncertainty | P1 |
+| **E18 — Requirement traceability** | Many-to-many links between requirements, observed state graph, journeys, candidates, test runs and findings | P1 |
+| **E19 — Assumptions and test-plan review** | Explicit open questions; proposed/approved plan; immutable expected results in trusted tests | P1 |
+| **E20 — Failure triage and replay** | Expected/actual, causal hypothesis, evidence pack, replay transcript and defect/test/environment classification | P1 |
+| **E21 — Controlled self-healing** | Mechanics-only repairs, original assertions preserved, reruns and human promotion | P2/post-MVP |
+| **E22 — Optional integrations** | CLI/MCP, CI gates, issue and messaging integration, API-chain tests and cleanup | P2/post-MVP |
+
+### Execution tasks (testable, in dependency order)
+
+1. Add `ProductBrief`, `Requirement`, `RequirementRevision`, `Assumption`, `TestPlan` and traceability link migrations; ensure immutable approvals and explicit source types.
+2. Add `POST/GET /projects/{id}/briefs`, requirement propose/review/read APIs and test-plan review endpoints behind local auth; do not give raw secrets to model.
+3. Extend React views with **Intent** and **Observed** tabs, side-by-side comparison, missing-coverage filters and accessible keyboard-first tables.
+4. Build requirement extraction prompt with structured JSON validation, provenance and confidence; extraction output always **PROPOSED**.
+5. Link observations to candidate requirements without allowing a browser observation to become the expected value of an approved check.
+6. Add report failure package schema and rule-based triage statuses; LLM cause estimates clearly marked hypotheses.
+7. Implement Playwright code generator reading *approved* oracle/version; block test promotion when expected behavior is missing or inferred only.
+8. Add benchmark acceptance tests **B-01 through B-10** (see benchmark) to milestone QA checklist; run axe-core plus manual a11y review on both maps and replay.
+
+### Scope protection
+
+Do **not** delay M0/M1 while reproducing TestSprite's entire product. The first useful release still uses one local browser, local data, Docker Compose, external OpenAI inference and a policy-enforced action gateway. Source/PRD imports, full API-chain testing, parallel agents, automatic repair, external CI and third-party SaaS integrations are incremental or deferred. A passing test suite is not proof of total application coverage.
