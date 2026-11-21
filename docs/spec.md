@@ -380,3 +380,108 @@ Each slice must have a runnable end-to-end demo and verifiable acceptance criter
 - LangGraph persistence: https://docs.langchain.com/oss/python/langgraph/persistence
 - React Flow: https://reactflow.dev/
 - OpenAI API data controls: https://developers.openai.com/api/docs/guides/your-data
+
+## 18. TestSprite-informed product intent, failure triage and UX contracts (2026-11-21)
+
+Companion: [TestSprite 4.0 benchmark](./testsprite-benchmark.md). These are **proposed implementation requirements**, not features already built. The external reference was released 2026-11-20 and describes brief-driven verification, editable feature maps, exploration/replay, triage and controlled test maintenance. Our runtime remains local Docker plus outbound OpenAI API.
+
+### 18.1 Two-map architecture and oracle ownership
+
+Maintain **separate canonical models**, cross-linked through evidence:
+
+1. **Intent Map** (normative): project briefs, requirements, roles, acceptance criteria, reviewed/approved oracles, feature dependencies, assumptions, version history, reviewers and upstream source locations. A requirement's expected outcome cannot be inferred from current observed behavior and then treated as approved.
+2. **App State Map** (observational): discovered states, role-specific conditions, observed transitions, network/API outcomes, screenshot/DOM/console artifacts and action histories. An observation may inform a question or proposal; it is not proof of correct business behavior.
+3. **Coverage links**: Requirement ↔ Journey ↔ AppState/Transition ↔ TestCase/Execution ↔ Finding/Report. Each link has provenance, run/correlation ID, version and a status such as PROPOSED / VERIFIED / CONTRADICTED / NOT_REACHED.
+
+A feature in a product brief can be **UNREVIEWED, PROPOSED, APPROVED, REJECTED or SUPERSEDED**. Edits to an approved requirement create a new revision and require reason, reviewer and explicit effective version. Store approved test expectations independent of generated code and of any test-healing component.
+
+**Truth table (minimum):**
+
+| Approved expected result? | Observed execution? | Allowed interpretation |
+|---|---|---|
+| No | Yes | DISCOVERED / NEEDS_ORACLE; never declare release PASS |
+| Yes | No | NOT_EXECUTED; INCONCLUSIVE if required |
+| Yes | Yes, matches | VERIFIED/PASS for that check with reproducible evidence |
+| Yes | Yes, contradicts | FAILURE candidate, corroborate and classify before release gate |
+| No | No | OUT_OF_SCOPE / UNKNOWN, never silently counted as covered |
+
+### 18.2 Project brief, assumptions and approved test plan
+
+- Input may include a plain-language goal, target URL, selected test environment/identity ref and optional **operator-supplied** PRD/ticket/design document; document parsing and external integrations are later phases. Never upload raw credentials or session state.
+- Model output is a structured **proposed** feature map with named roles, preconditions, expected outcomes, risk, source snippets/refs and explicit unanswered questions; no auto-approval.
+- Assumption record: id, text, discovered_by, source, affected requirements, impact, proposed answer, decision status, actor, timestamp and review version. The dashboard provides Approve/Revise/Reject actions.
+- Proposed test plans: test IDs, linked requirement versions, deterministic oracle, preconditions, fixture/setup/cleanup, roles, risk, required/optional flag, expected evidence and review state. Operator approves a plan before it becomes the release-required check set.
+- **No oracle laundering:** source code, current DOM, API response, prior passed run or AI confidence cannot silently replace approved expectations. For undocumented behavior, the agent may perform exploratory probes and ask questions, not produce a release PASS.
+
+### 18.3 Failure taxonomy and reproducible evidence bundle
+
+Maintain separate axes: **execution outcome** (PASS/FAIL/NOT_RUN/BLOCKED/INTERRUPTED), **triage class** (PRODUCT_DEFECT, TEST_FRAGILITY, ENVIRONMENT_FAILURE, UNKNOWN) and **review confidence/status** (SUSPECTED, CONFIRMED, DISMISSED). Do not conflate them.
+
+Per failure, produce a versioned bundle:
+- Project/run/step/test/requirement IDs and approved oracle version; expected versus actual;
+- Failing step and adjacent steps, before/after state IDs, normalized DOM/ARIA snapshot and screenshot/diff;
+- Playwright trace and optional recorded video, accessible timestamped text replay, relevant redacted console and network entries;
+- Browser/viewport/locale/timezone, fixture, auth role, app revision (if known), worker and model versions;
+- Repeatability/retries, suspected cause with confidence, suggested fix, classification decision and reviewer provenance;
+- Local evidence links with access checks, artifact hashes and retention policy.
+
+A model-suggested "root cause" is an **explicit hypothesis** unless deterministically corroborated. An environment outage is not automatically an application defect; a failed required check may still make the release gate INCONCLUSIVE. Confirmed critical/high product regressions fail per existing section 13.
+
+### 18.4 Test self-healing boundary (post-MVP)
+
+Permitted **proposal-only** repairs: selector strategy, stable waits, navigation transitions, fixture cleanup when consistent with reviewed setup and approved policy. Preserve the **same approved test oracle, requirement version, assertion semantics and negative-test intent**.
+
+Forbidden automatic repair: changing expected text/status/data, dropping assertions, expanding domain/action permissions, creating new test accounts without policy, accepting new visual baselines, masking a real defect, auto-merging to protected branches.
+
+Review process: proposed source diff → static/policy check → rerun against unchanged oracle → compare before/after evidence and flakiness → human review → optional promotion. If the original expectation fails after the mechanical repair, report the product failure; do not self-certify success.
+
+### 18.5 Visual and semantic UX inspection
+
+In addition to deterministic pixel/screenshot comparison (section 7), observe:
+- Toast/notification presence, disappearance timing, accessibility announcement and overlap/occlusion.
+- Consistency of action labels, dates/currency formats, focus and interactive semantics across states.
+- Empty-state accuracy, user feedback after success/failure, destructive confirmation clarity, disabled/loading states, responsive overflow and focus restoration.
+- Reference design mismatch (if explicitly supplied) marked **review-required** unless approved deterministic criteria exist.
+
+AI visual comments create reviewable observations, **not automatically confirmed bugs or legal accessibility verdicts**. Show source screenshot, current screenshot, diff mask, test device and all uncertainty. Redact screenshots before external model calls; if content cannot be safely redacted, do not use external vision inference.
+
+### 18.6 Dashboard acceptance / WCAG 2.2 AA amendments
+
+- Distinct **Intent Map** and **Observed App Map** with relationship overlay; each has a fully functional sortable/filterable table/list alternative and equal review/inspect controls.
+- A brief wizard with accessible labels, validation and clear boundary warnings before any approved test data modifications.
+- Requirement details show version, source, review state, proposed test plan, observed evidence and unresolved assumptions.
+- Run replay has an equivalent **ordered text step transcript** with timestamps and access-controlled artifact links; video alone does not establish accessibility.
+- Findings show expected/actual and triage status with text labels rather than color only; status updates are announced without flooding screen readers.
+- All approvals and changes to approved oracles use explicit confirmation, visible reviewer identity and persistent audit details.
+
+### 18.7 Data, events and API deltas
+
+Additional tables: project_briefs, requirements, requirement_sources, requirement_revisions, requirement_approvals, feature_dependencies, assumptions, test_plans, test_plan_items, requirement_journey_links, requirement_execution_links, failure_triage, healing_proposals.
+
+Versioned events: brief.created/updated; requirement.proposed/approved/revised; assumption.opened/resolved; test_plan.proposed/approved; requirement.journey_linked; failure.triaged; healing.proposed/executed/approved/rejected. Keep original step correlation and evidence references.
+
+Versioned endpoint additions (illustrative and subject to threat review):
+
+    POST /api/v1/projects/{project_id}/briefs
+    GET  /api/v1/projects/{project_id}/requirements
+    POST /api/v1/projects/{project_id}/requirements/proposals
+    POST /api/v1/requirements/{id}/reviews
+    GET  /api/v1/projects/{project_id}/assumptions
+    POST /api/v1/assumptions/{id}/decision
+    GET  /api/v1/projects/{project_id}/traceability
+    POST /api/v1/projects/{project_id}/test-plans
+    POST /api/v1/test-plans/{id}/review
+    GET  /api/v1/runs/{run_id}/failure-bundles
+    POST /api/v1/failures/{id}/triage
+
+Approvals require server-side actor authorization, optimistic version checks and recorded reasons; never rely only on client UI. Existing SSE replay, idempotency and audit requirements apply.
+
+### 18.8 Additional acceptance tests
+
+Reference benchmark scenarios **B-01 to B-10**. Highest-value release checks:
+- Inferred but unapproved requirement **cannot** make a required test PASS;
+- Same route but different modal/business state remains visible in App State Map;
+- Approved business expectation fails: do not turn that incorrect output into a new assertion;
+- Missing target/API or missing browser produces ENVIRONMENT_FAILURE/INCONCLUSIVE, not an invented product bug;
+- A proposed selector repair leaves assertion/oracle unchanged and shows original and repaired trace;
+- Both maps and replay support keyboard + screen reader; no silent external secret egress.
