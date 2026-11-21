@@ -18,3 +18,7 @@ M0/M1: a local Docker Compose application with a reachable authenticated dashboa
 ## Guardrails
 
 Do not check in secrets, test credentials, session storage, logs or screenshots. Never give the explorer repository write access or permission to transact with real money. See `docs/spec.md` for environment policy, OpenAI data egress and WCAG 2.2 AA requirements.
+
+## TestSprite product benchmark
+
+[TestSprite 4.0 benchmark, comparison and adopted requirements](docs/testsprite-benchmark.md) documents the external reference product identified by the owner and our requirements-first design amendments (editable **Intent Map** alongside the observational **App State Map**, approved test oracles, classified failure bundles and guarded test repair). This is a design reference only: the project remains an independently implemented, local-Docker/OpenAI-API system.
