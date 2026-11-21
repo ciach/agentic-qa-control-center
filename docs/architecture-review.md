@@ -67,3 +67,20 @@
 **Proceed with M0/M1 using an authorized fixture site, one identity, bounded read-only exploration and a visible event stream.** Expand scoped test-data writes only after gateway/approval/redaction tests pass. Do not promise production-safe or release-gating functionality merely because the dashboard renders.
 
 This review should be repeated by an independently configured second model or human reviewer before the first deployment against a real application. The current review was performed within the same assistant session as authoring, so it is **not an independent assurance assessment**.
+
+## TestSprite 4.0 benchmark follow-up — additional gap review (2026-11-21)
+
+Compared the published TestSprite 4.0 behavior with the current architecture; see [benchmark](./testsprite-benchmark.md). This is an internal specification review, **not** an independent external audit or separate agent.
+
+| Priority | New risk | Architectural decision | Adversarial test |
+|---|---|---|---|
+| **Critical** | Agent derives expected outcome from a defective implementation | Separate reviewed Intent Map from observed App State Map; model suggestions stay PROPOSED | Buggy UI is discovered but cannot become approved PASS oracle |
+| **Critical** | Auto-healing conceals a real regression by changing expectations | Prohibit automatic changes to approved assertions and baselines; mechanically repaired test reruns against identical oracle | Changed button behavior stays failed despite selector repair |
+| **High** | PRD or page content contains hostile instructions | Treat both documents and page text as untrusted inputs; gateway/policy remains authoritative; redact before OpenAI | Malicious requirements attempt privilege escalation or secret export and fail |
+| **High** | Ambiguous requirements masquerade as confirmed bugs | Assumption register and explicit human approvals; unknown expected value → INCONCLUSIVE | Undocumented behavior yields question, not defect or PASS |
+| **High** | AI misclassifies unavailable environment as product defect | Distinct execution, triage and reviewer-confidence axes; show full evidence bundle | Target unavailable classified separately, required gate not falsely PASS |
+| **High** | Requirements/observed graph drift over time | Requirement revisions, stable IDs, traceability links, test-to-oracle version pinning | Changed requirement preserves old run history and approvals |
+| **High** | Replay/feature graphs exclude users with assistive technology | Two accessible list/table alternatives and ordered step transcript | Full keyboard/screen-reader review of requirement/test/run |
+| **Medium** | Overbuilding a TestSprite-style SaaS before reliable MVP | Keep local single-worker M0/M1, defer fleet/CI/integrations/self-healing | Milestone exit checks don't depend on deferred features |
+
+**Disposition:** proceed with existing Docker/OpenAI/M0-M1 plan, but require two-map/oracle invariants before shipping test generation. Report classification and reviewable expected/actual evidence precede any auto-healing feature. No TestSprite assets, proprietary code or private APIs should be copied.
